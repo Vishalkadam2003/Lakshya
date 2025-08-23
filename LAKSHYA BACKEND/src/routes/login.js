@@ -6,6 +6,21 @@ import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
+
+export const verifyToken = (req, res, next) => {
+    const token = req.headers["authorization"];
+
+    if (!token) return res.status(401).json({ message: "Access denied. No token provided." });
+
+    try {
+        const verified = jwt.verify(token, "your_jwt_secret"); // use same secret as login
+        req.user = verified;
+        next();
+    } catch (err) {
+        res.status(400).json({ message: "Invalid token" });
+    }
+};
+
 router.post("/", async (req, res) => {
     const { email, password } = req.body;
 

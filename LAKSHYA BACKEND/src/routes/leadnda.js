@@ -4,38 +4,25 @@ import fs from "fs";
 import path from "path";
 import { transporter } from "../config/email.js";
 import { generateNDA } from "../utils/generateNDA.js";
+import { verifyToken } from "./login.js"; // import middleware
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
-  const {
-    firstName,
-    lastName,
-    email,
-    companyName,
-    city,
-    state,
-    country,
-    pincode,
-    agree,
-  } = req.body;
+router.get("/", verifyToken, async (req, res) => {
+    // only accessible if token is valid
+    res.json({ message: "This is NDA content", user: req.user });
+});
+
+
+router.post("/", verifyToken, async (req, res) => {
+  const { firstName, lastName, email, companyName, city, state, country, pincode, agree } = req.body;
 
   try {
     const result = await pool.query(
       `INSERT INTO lead_nda 
         (email, first_name, last_name, company_name, city, state, country, pincode, agree, timestramp) 
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, NOW()) RETURNING *`,
-      [
-        email,
-        firstName,
-        lastName,
-        companyName || "",
-        city || "",
-        state || "",
-        country || "",
-        pincode || "",
-        agree ? "yes" : "no",
-      ]
+      [email, firstName, lastName, companyName || "", city || "", state || "", country || "", pincode || "", agree ? "yes" : "no"]
     );
 
     const userData = result.rows[0];
@@ -55,7 +42,7 @@ router.post("/", async (req, res) => {
       country,
       pincode,
       agree,
-      timestramp: result.rows[0].timestramp
+      timestramp: userData.timestramp
     });
 
     const mailOptions = {
@@ -77,5 +64,6 @@ router.post("/", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
 
 export default router;
