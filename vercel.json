@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "LAKSHYA FRONTEND/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "LAKSHYA FRONTEND/build"
+      }
+    }
+  ],
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/index.html" }
+  ]
+}
